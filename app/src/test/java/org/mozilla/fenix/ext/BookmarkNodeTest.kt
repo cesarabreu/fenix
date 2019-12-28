@@ -7,6 +7,7 @@ package org.mozilla.fenix.ext
 import mozilla.components.concept.storage.BookmarkNode
 import mozilla.components.concept.storage.BookmarkNodeType
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class BookmarkNodeTest {
@@ -78,10 +79,46 @@ class BookmarkNodeTest {
         assertEquals(restOfResult, restofOriginal)
     }
 
-    private fun newBookmarkNode(title: String, position: Int, children: List<BookmarkNode>?) = BookmarkNode(
+    @Test
+    fun `GIVEN a bookmark node WHEN any() with a predicate matching it THEN return true`() {
+        val bookmarkNode = newBookmarkNode("title", 0, null)
+        assertTrue(bookmarkNode.any { it.title == "title" })
+    }
+
+    fun `GIVEN a bookmark node with children WHEN any() with a predicate matching one of its children THEN return true`() {
+        val bookmarkNode = newBookmarkNode("title", 0, allChildren)
+        assertTrue(bookmarkNode.any { it.title == "Child 1" })
+    }
+
+    fun `GIVEN a bookmark node with children WHEN any() with a predicate matching one of its children's child THEN return true`() {
+        val childrenDeeper = allChildren.plus(
+            newBookmarkNode("Child 4", 4, listOf(
+                newBookmarkNode("Child 4 - A", 0, null )
+            ))
+        )
+        val bookmarkNode = newBookmarkNode("title", 0, childrenDeeper)
+        assertTrue(bookmarkNode.any { it.title == "Child 4 - A" })
+    }
+
+    fun `GIVEN a bookmark node with children WHEN any() with a predicate not matching it or any of its children's child THEN return false`() {
+        val childrenDeeper = allChildren.plus(
+            newBookmarkNode("Child 4", 4, listOf(
+                newBookmarkNode("Child 4 - A", 0, null )
+            ))
+        )
+        val bookmarkNode = newBookmarkNode("title", 0, childrenDeeper)
+        assertTrue(bookmarkNode.any { it.title == "Childpa X" })
+    }
+
+    private fun newBookmarkNode(
+        title: String,
+        position: Int,
+        children: List<BookmarkNode>?,
+        parentNode: BookmarkNode? = null
+    ) = BookmarkNode(
             type = BookmarkNodeType.ITEM,
             guid = uniqueId++.toString(),
-            parentGuid = "12",
+            parentGuid = parentNode?.guid,
             position = position,
             title = title,
             url = "www.mockurl.com",
