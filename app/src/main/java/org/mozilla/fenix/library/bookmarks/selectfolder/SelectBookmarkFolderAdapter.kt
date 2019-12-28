@@ -16,6 +16,7 @@ import mozilla.components.concept.storage.BookmarkNode
 import mozilla.components.concept.storage.BookmarkNodeType
 import mozilla.components.support.ktx.android.util.dpToPx
 import org.mozilla.fenix.R
+import org.mozilla.fenix.ext.any
 import org.mozilla.fenix.library.LibrarySiteItemView
 import org.mozilla.fenix.library.bookmarks.BookmarksSharedViewModel
 import org.mozilla.fenix.library.bookmarks.selectfolder.SelectBookmarkFolderAdapter.BookmarkFolderViewHolder
@@ -46,7 +47,11 @@ class SelectBookmarkFolderAdapter(private val sharedViewModel: BookmarksSharedVi
     override fun onBindViewHolder(holder: BookmarkFolderViewHolder, position: Int) {
         val item = getItem(position)
 
-        holder.bind(item, selected = item.node.isSelected()) { node ->
+        holder.bind(
+            folder = item,
+            selected = item.node.isSelected(),
+            disabled = item.disabled
+        ) { node ->
             val lastSelectedItemPosition = getSelectedItemIndex()
 
             sharedViewModel.toggleSelection(node)
@@ -69,7 +74,13 @@ class SelectBookmarkFolderAdapter(private val sharedViewModel: BookmarksSharedVi
             view.overflowView.visibility = View.GONE
         }
 
-        fun bind(folder: BookmarkNodeWithDepth, selected: Boolean, onSelect: (BookmarkNode) -> Unit) {
+        fun bind(
+            folder: BookmarkNodeWithDepth,
+            selected: Boolean,
+            disabled: Boolean,
+            onSelect: (BookmarkNode) -> Unit)
+        {
+            view.changeDisabled(disabled)
             view.changeSelected(selected)
             view.iconView.setImageDrawable(
                 AppCompatResources.getDrawable(
@@ -82,7 +93,7 @@ class SelectBookmarkFolderAdapter(private val sharedViewModel: BookmarksSharedVi
             )
             view.titleView.text = folder.node.title
             view.setOnClickListener {
-                onSelect(folder.node)
+                if (!disabled) onSelect(folder.node)
             }
             val pxToIndent = dpsToIndent.dpToPx(view.context.resources.displayMetrics)
             val padding = pxToIndent * if (folder.depth > maxDepth) maxDepth else folder.depth
@@ -94,10 +105,17 @@ class SelectBookmarkFolderAdapter(private val sharedViewModel: BookmarksSharedVi
         }
     }
 
-    data class BookmarkNodeWithDepth(val depth: Int, val node: BookmarkNode, val parent: String?)
+    data class BookmarkNodeWithDepth(val depth: Int, val node: BookmarkNode, val parent: String?, val disabled: Boolean)
 
     private fun BookmarkNode.convertToFolderDepthTree(depth: Int = 0): List<BookmarkNodeWithDepth> {
-        val newList = listOf(BookmarkNodeWithDepth(depth, this, this.parentGuid))
+        val newList = listOf(
+            BookmarkNodeWithDepth(
+                depth = depth,
+                node = this,
+                parent = this.parentGuid,
+                disabled = sharedViewModel.selectedNode?.any { it.guid == guid } ?: false
+            )
+        )
         return newList + children
             ?.filter { it.type == BookmarkNodeType.FOLDER }
             ?.flatMap { it.convertToFolderDepthTree(depth = depth + 1) }

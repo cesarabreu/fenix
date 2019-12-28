@@ -32,6 +32,11 @@ class BookmarksSharedViewModel : ViewModel(), AccountObserver {
     var selectedFolder: BookmarkNode? = null
 
     /**
+     * The currently selected bookmark.
+     */
+    var selectedNode: BookmarkNode? = null
+
+    /**
      * Updates the [signedIn] boolean once the account observer sees that the user logged in.
      */
     override fun onAuthenticated(account: OAuthAccount, authType: AuthType) {

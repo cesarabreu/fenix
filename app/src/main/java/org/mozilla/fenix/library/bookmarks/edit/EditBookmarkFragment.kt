@@ -89,11 +89,12 @@ class EditBookmarkFragment : Fragment(R.layout.fragment_edit_bookmark) {
 
             withContext(IO) {
                 val bookmarksStorage = context.components.core.bookmarksStorage
-                bookmarkNode = bookmarksStorage.getTree(guidToEdit)
+                bookmarkNode = bookmarksStorage.getTree(guidToEdit, true)
                 bookmarkParent = sharedViewModel.selectedFolder
                     ?: bookmarkNode?.parentGuid
                         ?.let { bookmarksStorage.getTree(it) }
                         ?.let { DesktopFolders(context, showMobileRoot = true).withRootTitle(it) }
+                sharedViewModel.selectedNode = bookmarkNode
             }
 
             when (bookmarkNode?.type) {

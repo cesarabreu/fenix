@@ -18,3 +18,22 @@ operator fun BookmarkNode.minus(children: Set<BookmarkNode>): BookmarkNode {
     val removedChildrenGuids = children.map { it.guid }.toSet()
     return this.copy(children = this.children?.filterNot { removedChildrenGuids.contains(it.guid) })
 }
+
+/**
+ * Returns `true` if at least one [BookmarkNode] matches the given [predicate].
+ */
+fun BookmarkNode.any(predicate: (BookmarkNode) -> Boolean): Boolean {
+    tailrec fun match(acc: List<BookmarkNode>, predicate: (BookmarkNode) -> Boolean): Boolean {
+        return when {
+            acc.isEmpty() -> false
+            predicate(acc.first()) -> true
+            else -> {
+                val testedNode = acc.first()
+                val newAcc = acc.drop(1)
+                    .plus(testedNode.children.orEmpty())
+                match(newAcc, predicate)
+            }
+        }
+    }
+    return match(listOf(this), predicate)
+}

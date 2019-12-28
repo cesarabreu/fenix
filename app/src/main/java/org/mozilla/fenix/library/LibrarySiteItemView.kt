@@ -67,6 +67,8 @@ class LibrarySiteItemView @JvmOverloads constructor(
 
     val overflowView: ImageButton get() = overflow_menu
 
+    private val disabledAlphaValue: Float by lazy { getDisabledAlpha() }
+
     init {
         LayoutInflater.from(context).inflate(R.layout.library_site_item, this, true)
 
@@ -91,6 +93,10 @@ class LibrarySiteItemView @JvmOverloads constructor(
      */
     fun changeSelected(isSelected: Boolean) {
         icon.displayedChild = if (isSelected) 1 else 0
+    }
+
+    fun changeDisabled(isDisabled: Boolean) {
+        alpha = if (isDisabled) disabledAlphaValue else 1f
     }
 
     fun loadFavicon(url: String) {
@@ -133,6 +139,14 @@ class LibrarySiteItemView @JvmOverloads constructor(
             }
         }
     }
+
+    private fun getDisabledAlpha() =
+        context.obtainStyledAttributes(intArrayOf(android.R.attr.disabledAlpha))
+            .let {
+                val newAlpha = it.getFloat(0, 0f)
+                it.recycle()
+                newAlpha
+            }
 
     enum class ItemType {
         SITE, FOLDER, SEPARATOR;
