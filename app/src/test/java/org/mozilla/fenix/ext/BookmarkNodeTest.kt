@@ -6,8 +6,7 @@ package org.mozilla.fenix.ext
 
 import mozilla.components.concept.storage.BookmarkNode
 import mozilla.components.concept.storage.BookmarkNodeType
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
+import org.junit.Assert.*
 import org.junit.Test
 
 class BookmarkNodeTest {
@@ -85,29 +84,32 @@ class BookmarkNodeTest {
         assertTrue(bookmarkNode.any { it.title == "title" })
     }
 
+    @Test
     fun `GIVEN a bookmark node with children WHEN any() with a predicate matching one of its children THEN return true`() {
         val bookmarkNode = newBookmarkNode("title", 0, allChildren)
         assertTrue(bookmarkNode.any { it.title == "Child 1" })
     }
 
+    @Test
     fun `GIVEN a bookmark node with children WHEN any() with a predicate matching one of its children's child THEN return true`() {
-        val childrenDeeper = allChildren.plus(
+        val deeperTree = allChildren.plus(
             newBookmarkNode("Child 4", 4, listOf(
                 newBookmarkNode("Child 4 - A", 0, null )
             ))
         )
-        val bookmarkNode = newBookmarkNode("title", 0, childrenDeeper)
+        val bookmarkNode = newBookmarkNode("title", 0, deeperTree)
         assertTrue(bookmarkNode.any { it.title == "Child 4 - A" })
     }
 
+    @Test
     fun `GIVEN a bookmark node with children WHEN any() with a predicate not matching it or any of its children's child THEN return false`() {
-        val childrenDeeper = allChildren.plus(
+        val deeperTree = allChildren.plus(
             newBookmarkNode("Child 4", 4, listOf(
                 newBookmarkNode("Child 4 - A", 0, null )
             ))
         )
-        val bookmarkNode = newBookmarkNode("title", 0, childrenDeeper)
-        assertTrue(bookmarkNode.any { it.title == "Childpa X" })
+        val bookmarkNode = newBookmarkNode("title", 0, deeperTree)
+        assertFalse(bookmarkNode.any { it.title == "Childpa X" })
     }
 
     private fun newBookmarkNode(
