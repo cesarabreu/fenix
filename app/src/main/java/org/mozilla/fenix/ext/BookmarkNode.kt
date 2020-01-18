@@ -23,17 +23,20 @@ operator fun BookmarkNode.minus(children: Set<BookmarkNode>): BookmarkNode {
  * Returns `true` if at least one [BookmarkNode] matches the given [predicate].
  */
 fun BookmarkNode.any(predicate: (BookmarkNode) -> Boolean): Boolean {
-    tailrec fun match(acc: List<BookmarkNode>, predicate: (BookmarkNode) -> Boolean): Boolean {
+    tailrec fun match(
+        nodes: MutableList<BookmarkNode>,
+        predicate: (BookmarkNode) -> Boolean,
+        index: Int = 0
+    ): Boolean {
         return when {
-            acc.isEmpty() -> false
-            predicate(acc.first()) -> true
+            index > nodes.lastIndex -> false
+            predicate(nodes[index]) -> true
             else -> {
-                val testedNode = acc.first()
-                val newAcc = acc.drop(1)
-                    .plus(testedNode.children.orEmpty())
-                match(newAcc, predicate)
+                val testedNode = nodes[index]
+                nodes.addAll(testedNode.children.orEmpty())
+                match(nodes, predicate, index + 1)
             }
         }
     }
-    return match(listOf(this), predicate)
+    return match(mutableListOf(this), predicate)
 }
